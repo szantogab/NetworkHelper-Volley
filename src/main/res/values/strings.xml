@@ -1,0 +1,5 @@
+<resources>
+    
+    <string name="error_no_internet_connection">No internet connection detected!</string>
+
+</resources>

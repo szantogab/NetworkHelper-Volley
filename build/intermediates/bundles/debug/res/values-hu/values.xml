@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- From: file:/Volumes/Adat/AndroidDev/AndroidStudioProjects/EnterpriseSecuritySystem/networkHelper/src/main/res/values-hu/strings.xml -->
+    <eat-comment />
+
+    <string name="error_no_internet_connection">Nincs aktív internetkapcsolat!</string>
+
+</resources>
