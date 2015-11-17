@@ -1,27 +1,11 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.rainy.networkhelper"
-    android:versionCode="2"
-    android:versionName="1.1" >
+<manifest package="com.rainy.networkhelper"
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          android:versionCode="4">
 
     <uses-sdk
         android:minSdkVersion="8"
-        android:targetSdkVersion="19" />
+        android:targetSdkVersion="19"/>
 
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <application
-        android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
-        android:theme="@style/AppTheme" >
-        <receiver
-            android:name="com.rainy.networkhelper.receiver.NetworkChangeReceiver"
-            android:label="NetworkChangeReceiver" >
-            <intent-filter>
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
-                <action android:name="com.rainy.networkhelper.ACTION_SEND_REQUEST" />
-
-            </intent-filter>
-        </receiver>
-    </application>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
 </manifest>

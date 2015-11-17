@@ -1,5 +1,17 @@
 package com.rainy.networkhelper;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -15,36 +27,24 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-
-public class SSLHttpFactory{
-
+public class SSLHttpFactory
+{
 	static HttpClient client=null;
 	static HttpClient httpsClient=null;
 	static ClientConnectionManager ccm;
-	
-	public static HttpClient createHttpsClient()
+
+	public static HttpClient createHttpsClient(int timeout)
 	{
+
 		if (httpsClient==null || ccm==null)
 		{
 			KeyStore trustStore;
 			
 			HttpParams httpParameters = new BasicHttpParams();
 			
-			HttpConnectionParams.setConnectionTimeout(httpParameters, 20000);
-	
-			HttpConnectionParams.setSoTimeout(httpParameters, 20000);
-		
+			HttpConnectionParams.setConnectionTimeout(httpParameters, timeout);
+			HttpConnectionParams.setSoTimeout(httpParameters, timeout);
+
 			try {
 				trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
 	
