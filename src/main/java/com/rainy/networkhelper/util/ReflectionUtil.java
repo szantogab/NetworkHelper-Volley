@@ -20,7 +20,7 @@ public class ReflectionUtil
 {
 	public static List<Field> getInheritedPrivateFields(Class<?> type)
 	{
-		List<Field> result = new ArrayList<Field>();
+		List<Field> result = new ArrayList<>();
 
 		Class<?> i = type;
 		while (i != null && i != Object.class)
@@ -36,7 +36,7 @@ public class ReflectionUtil
 
 	public static List<Field> getFieldsHavingAnnotation(Class<?> type, Class<? extends Annotation> annotation)
 	{
-		ArrayList fields = new ArrayList();
+		ArrayList<Field> fields = new ArrayList<>();
 		for (Field field : getInheritedPrivateFields(type))
 		{
 			field.setAccessible(true);
@@ -46,6 +46,16 @@ public class ReflectionUtil
 		}
 
 		return fields;
+	}
+
+	public static Annotation getClassAnnotation(Class<?> type, Class<? extends Annotation> annotation)
+	{
+		for (Annotation ann : type.getDeclaredAnnotations()) {
+			if (ann.annotationType().equals(annotation))
+				return ann;
+		}
+
+		return null;
 	}
 
 	/**
@@ -60,7 +70,7 @@ public class ReflectionUtil
 			try
 			{
 				value = field.get(o).toString();
-			} catch (IllegalAccessException e)
+			} catch (Exception e)
 			{
 				e.printStackTrace();
 			}
@@ -77,7 +87,7 @@ public class ReflectionUtil
 			{
 				if (method.getName().toLowerCase().endsWith(field.getName().toLowerCase()))
 				{
-					// MZ: Method found, run it
+					// MZ: RequestMethod found, run it
 					try
 					{
 						return method.invoke(o).toString();

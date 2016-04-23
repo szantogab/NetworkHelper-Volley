@@ -5,6 +5,8 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.GsonBuilder;
 import com.rainy.networkhelper.annotation.Header;
 
+import java.lang.reflect.Type;
+
 /**
  * Created by szantogabor on 20/02/15.
  */
@@ -26,6 +28,13 @@ public class GsonBodyMapper implements BodyMapper
 	{
 		String json = new String(data, encoding);
 		return getGsonBuilder().create().fromJson(json, clazz);
+	}
+
+	@Override
+	public <T> T decodeParams(byte[] data, Type type, String encoding) throws Exception
+	{
+		String json = new String(data, encoding);
+		return getGsonBuilder().create().fromJson(json, type);
 	}
 
 	public class ExcludeHeaderStrategy implements ExclusionStrategy

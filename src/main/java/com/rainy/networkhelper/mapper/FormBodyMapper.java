@@ -2,6 +2,7 @@ package com.rainy.networkhelper.mapper;
 
 import com.rainy.networkhelper.util.ReflectionUtil;
 
+import java.lang.reflect.Type;
 import java.net.URLEncoder;
 import java.util.Iterator;
 
@@ -31,6 +32,11 @@ public class FormBodyMapper implements BodyMapper
 
 	public <T> T decodeParams(byte[] data, Class<T> clazz, String encoding) throws Exception
 	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public <T> T decodeParams(byte[] data, Type type, String encoding) throws Exception {
 		throw new UnsupportedOperationException();
 	}
 

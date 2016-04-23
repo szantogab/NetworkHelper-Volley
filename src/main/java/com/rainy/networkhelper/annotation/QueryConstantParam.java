@@ -6,8 +6,6 @@
 
 package com.rainy.networkhelper.annotation;
 
-import com.android.volley.Request;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -15,8 +13,9 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface Method
+public @interface QueryConstantParam
 {
-	int method() default Request.Method.GET;
-	String url();
+	String name();
+	String value();
 }
+
