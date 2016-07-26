@@ -28,6 +28,13 @@ public class ModifyUserRequest extends ParserRequest<User> {
         this.userId = userId;
         this.enabled = enabled;
         this.token = token;
+        
+        // this is optional, you can set any other encoder here, but these two implementations are available in the library
+        setBodyEncoder(new GsonBodyMapper()); // Gson will be used to serialize your request DTO
+        setBodyEncoder(new FormBodyMapper()); // the request DTO will be serialized as a simple POST request, with the following Content-Type: application/x-www-form-urlencoded.
+        
+        // this is optional, you can set any other decoder here, for example an XML parser
+        setResponseDecoder(new GsonBodyMapper()); 
 }
 ```
 
