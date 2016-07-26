@@ -3,7 +3,7 @@ package com.rainy.networkhelper.mapper;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.GsonBuilder;
-import com.rainy.networkhelper.annotation.Header;
+import com.rainy.networkhelper.annotation.HeaderParam;
 
 import java.lang.reflect.Type;
 
@@ -46,7 +46,7 @@ public class GsonBodyMapper implements BodyMapper
 
 		public boolean shouldSkipField(FieldAttributes f)
 		{
-			return f.getAnnotation(Header.class) != null;
+			return f.getAnnotation(HeaderParam.class) != null;
 		}
 	}
 

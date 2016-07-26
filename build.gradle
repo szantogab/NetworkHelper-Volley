@@ -7,7 +7,7 @@ android {
     defaultConfig {
         minSdkVersion 8
         targetSdkVersion 22
-        versionName '0.9.9'
+        versionName '0.9.11'
     }
 
     buildTypes {
@@ -20,6 +20,11 @@ android {
 
 dependencies
 {
-    compile 'com.google.code.gson:gson:2.5'
-    compile 'com.android.volley:volley:1.0.0'
+    compile ('com.google.code.gson:gson:2.5') {
+        transitive = true
+    }
+
+    compile ('com.android.volley:volley:1.0.0') {
+        transitive = true
+    }
 }

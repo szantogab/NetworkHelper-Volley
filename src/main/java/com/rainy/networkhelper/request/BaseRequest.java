@@ -15,6 +15,7 @@ import com.rainy.networkhelper.annotation.QueryConstantParams;
 import com.rainy.networkhelper.annotation.RequestMethod;
 import com.rainy.networkhelper.util.ReflectionUtil;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,7 +46,11 @@ public abstract class BaseRequest<T> extends Request<T> {
         if (requestMethod == null)
             throw new IllegalArgumentException("This class must be annotated with RequestMethod annotation.");
 
+        if (requestMethod.url() == null || requestMethod.url().length() == 0)
+            throw new IllegalArgumentException("The RequestMethod annotation's url must be specified.");
+
         this.method = requestMethod.method();
+        this.url = requestMethod.url();
 
         QueryConstantParam queryConstantParam = (QueryConstantParam) ReflectionUtil.getClassAnnotation(getClass(), QueryConstantParam.class);
         if (queryConstantParam != null) {
@@ -57,11 +62,6 @@ public abstract class BaseRequest<T> extends Request<T> {
             for (QueryConstantParam queryConstantParam1 : queryConstantParams.value())
                 queryParams.put(queryConstantParam1.name(), queryConstantParam1.value());
         }
-
-        if (requestMethod.url() == null || requestMethod.url().length() == 0)
-            throw new IllegalArgumentException("The RequestMethod annotation's url must be specified.");
-
-        this.url = requestMethod.url();
     }
 
     public BaseRequest(int httpMethod, String url, Response.Listener<T> listener, Response.ErrorListener errorListener) {
@@ -128,7 +128,8 @@ public abstract class BaseRequest<T> extends Request<T> {
 
     @Override
     public Map<String, String> getHeaders() throws AuthFailureError {
-        return this.headers != null ? this.headers : super.getHeaders();
+        headers.putAll(ReflectionUtil.getMethodsAndFieldValuesAnnotatedWithHeaderParam(this));
+        return headers;
     }
 
     public void setHeaders(Map<String, String> headers) {
@@ -181,12 +182,14 @@ public abstract class BaseRequest<T> extends Request<T> {
         String _url = (url != null ? url : super.getUrl());
 
         if (_url != null) {
+            pathParams.putAll(ReflectionUtil.getMethodsAndFieldValuesAnnotatedWithPathParam(this));
             if (getPathParams() != null) {
                 for (Map.Entry<String, String> entry : getPathParams().entrySet()) {
                     _url = _url.replaceAll("\\{" + entry.getKey() + "\\}", entry.getValue());
                 }
             }
 
+            queryParams.putAll(ReflectionUtil.getMethodsAndFieldValuesAnnotatedWithQueryParam(this));
             if (getQueryParams() != null) {
                 for (Map.Entry<String, String> entry : getQueryParams().entrySet()) {
                     String c = _url.contains("?") ? "&" : "?";
@@ -203,5 +206,9 @@ public abstract class BaseRequest<T> extends Request<T> {
         if (listener != null) {
             listener.onResponse(basicResponseDto);
         }
+    }
+
+    public static RequestQueue getQueue() {
+        return queue;
     }
 }

@@ -5,14 +5,11 @@ import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
 import com.android.volley.Response;
 import com.android.volley.toolbox.HttpHeaderParser;
-import com.rainy.networkhelper.annotation.Header;
 import com.rainy.networkhelper.mapper.BodyMapper;
 import com.rainy.networkhelper.mapper.GsonBodyMapper;
 import com.rainy.networkhelper.response.ParsedResponse;
-import com.rainy.networkhelper.util.ReflectionUtil;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.Map;
 
@@ -54,30 +51,6 @@ public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
 
     public void setRequestDto(Object requestDto) {
         this.requestDto = requestDto;
-
-        if (this.requestDto != null) {
-            for (Field field : ReflectionUtil.getFieldsHavingAnnotation(requestDto.getClass(), Header.class)) {
-                field.setAccessible(true);
-
-                Header headerAnnotation = field.getAnnotation(Header.class);
-                if (headerAnnotation != null) {
-                    String fieldName = field.getName();
-                    if (!headerAnnotation.name().equals(""))
-                        fieldName = headerAnnotation.name();
-
-                    String value = ReflectionUtil.getFieldValue(field, requestDto);
-
-                    if (value != null)
-                        try {
-                            Map<String, String> headers = getHeaders();
-                            headers.put(fieldName, value);
-                            setHeaders(headers);
-                        } catch (AuthFailureError authFailureError) {
-                            authFailureError.printStackTrace();
-                        }
-                }
-            }
-        }
     }
 
     @Override
