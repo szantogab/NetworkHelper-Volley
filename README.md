@@ -2,8 +2,10 @@
 A networking library for Android that builds on top of Volley from Google.
 
 This library has been developed in order to extend Volley, giving new features like:
-  - Add ParserRequest class to parse JSON responses with Gson (or if you'd like to use Jackson, or any other serialization library, you can use that as well)
+  - Add ParserRequest class to parse JSON responses with Gson (or if you'd like to use Jackson, or any other serialization library, you can use that as well, but Gson is the default)
+  - Support for 
   - Use annotations to avoid writing boilerplate code
+
 
 ## Usage
 You can import this library from jCenter with Gradle:
@@ -37,7 +39,10 @@ public class ModifyUserRequest extends ParserRequest<User> {
         setResponseDecoder(new GsonBodyMapper()); 
         
         // set the user object, so it will be serialized and placed in the body of the request
-        setRequestDto(user); 
+        setRequestDto(user);
+        
+        // optionally set that this request can only be sent via WiFi
+        setConnectionType(ConnectivityManager.TYPE_WIFI);
 }
 ```
 
