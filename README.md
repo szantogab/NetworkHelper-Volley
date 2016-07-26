@@ -23,9 +23,9 @@ public class ModifyUserRequest extends ParserRequest<User> {
     @HeaderParam
     private boolean token;
     
-    public ModifyUserRequest(Long userId, boolean enabled, String token, Response.Listener<ParsedResponse<User>> listener, Response.ErrorListener errorListener) {
+    public ModifyUserRequest(User user, boolean enabled, String token, Response.Listener<ParsedResponse<User>> listener, Response.ErrorListener errorListener) {
         super(new TypeToken<User>(){}.getType(), listener, errorListener);
-        this.userId = userId;
+        this.userId = user.getId();
         this.enabled = enabled;
         this.token = token;
         
@@ -35,12 +35,16 @@ public class ModifyUserRequest extends ParserRequest<User> {
         
         // this is optional, you can set any other decoder here, for example an XML parser
         setResponseDecoder(new GsonBodyMapper()); 
+        
+        // set the user object, so it will be serialized and placed in the body of the request
+        setRequestDto(user); 
 }
 ```
 
 And then use it in your code:
 ```java
-        new ModifyUserRequest(1L, true, "token", new Response.Listener<ParsedResponse<User>>() {
+        User user = new User("First Name", "Last Name", "hello@android.com");
+        new ModifyUserRequest(user, true, "token", new Response.Listener<ParsedResponse<User>>() {
             @Override
             public void onResponse(ParsedResponse<User> response) {
                 User user = response.getParsedResponse();
