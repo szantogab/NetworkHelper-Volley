@@ -10,13 +10,13 @@ This library has been developed in order to extend Volley, giving new features l
 ## Usage
 You can import this library from jCenter with Gradle:
 ```gradle
-compile 'com.appsquare:networkHelper:0.9.11'
+compile 'com.appsquare:networkhelper:0.9.11'
 ```
 
 ```java
 @RequestMethod(method = Request.Method.POST, url = "/users/{userId}")
 public class ModifyUserRequest extends ParserRequest<User> {
-    @PathParam
+    @PathParam  //(this annotation can also be placed on a getter, like getUserId())
     private Long userId;
 
     @QueryParam
