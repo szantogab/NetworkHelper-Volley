@@ -3,7 +3,7 @@ A networking library for Android that builds on top of Volley from Google.
 
 This library has been developed in order to extend Volley, giving new features like:
   - Add ParserRequest class to parse JSON responses with Gson (or if you'd like to use Jackson, or any other serialization library, you can use that as well, but Gson is the default)
-  - Support for 
+  - Support for configuring requests to only work on specific network connections (i.e WiFi or LTE).
   - Use annotations to avoid writing boilerplate code
 
 
