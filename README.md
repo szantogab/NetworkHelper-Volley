@@ -10,11 +10,12 @@ This library has been developed in order to extend Volley, giving new features l
 ## Usage
 You can import this library from jCenter with Gradle:
 ```gradle
-compile 'com.appsquare:networkhelper:0.9.11'
+compile 'com.appsquare:networkhelper:0.9.13'
 ```
 
 ```java
 @RequestMethod(method = Request.Method.POST, url = "/users/{userId}")
+@ExpectedStatusCode(values = {200, 204}) // optional, here the response's status code can be set (from 200-299) that we accept
 public class ModifyUserRequest extends ParserRequest<User> {
     @PathParam  //(this annotation can also be placed on a getter, like getUserId())
     private Long userId;
@@ -26,7 +27,7 @@ public class ModifyUserRequest extends ParserRequest<User> {
     private boolean token;
     
     public ModifyUserRequest(User user, boolean enabled, String token, Response.Listener<ParsedResponse<User>> listener, Response.ErrorListener errorListener) {
-        super(new TypeToken<User>(){}.getType(), listener, errorListener);
+        super(listener, errorListener);
         this.userId = user.getId();
         this.enabled = enabled;
         this.token = token;
