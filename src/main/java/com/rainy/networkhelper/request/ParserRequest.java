@@ -5,34 +5,27 @@ import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
 import com.android.volley.Response;
 import com.android.volley.toolbox.HttpHeaderParser;
+import com.google.common.reflect.TypeToken;
+import com.rainy.networkhelper.exception.UnexpectedStatusCodeError;
 import com.rainy.networkhelper.mapper.BodyMapper;
 import com.rainy.networkhelper.mapper.GsonBodyMapper;
 import com.rainy.networkhelper.response.ParsedResponse;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Map;
 
 public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
-    private Class<T> clazz = null;
     private Type type = null;
     private Object requestDto = null;
     private BodyMapper bodyEncoder = new GsonBodyMapper();
     private BodyMapper responseDecoder = new GsonBodyMapper();
 
-    public ParserRequest(Class<T> clazz, Response.Listener<ParsedResponse<T>> listener, Response.ErrorListener errorListener) throws IllegalArgumentException {
+    public ParserRequest(Response.Listener<ParsedResponse<T>> listener, Response.ErrorListener errorListener) throws IllegalArgumentException {
         super(listener, errorListener);
-        this.clazz = clazz;
-    }
-
-    public ParserRequest(Type type, Response.Listener<ParsedResponse<T>> listener, Response.ErrorListener errorListener) throws IllegalArgumentException {
-        super(listener, errorListener);
-        this.type = type;
-    }
-
-    public ParserRequest(int httpMethod, String url, Class<T> clazz, Response.Listener<ParsedResponse<T>> listener, Response.ErrorListener errorListener) {
-        super(httpMethod, url, listener, errorListener);
-        this.clazz = clazz;
+        this.type = new TypeToken<T>(getClass()) {
+        }.getType();
     }
 
     public ParserRequest(int httpMethod, String url, Type type, Response.Listener<ParsedResponse<T>> listener, Response.ErrorListener errorListener) {
@@ -40,9 +33,9 @@ public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
         this.type = type;
     }
 
-    public ParserRequest(int httpMethod, String url, Map<String, String> headers, Class<T> clazz, Response.Listener<ParsedResponse<T>> listener, Response.ErrorListener errorListener) {
+    public ParserRequest(int httpMethod, String url, Map<String, String> headers, Type type, Response.Listener<ParsedResponse<T>> listener, Response.ErrorListener errorListener) {
         super(httpMethod, url, headers, listener, errorListener);
-        this.clazz = clazz;
+        this.type = type;
     }
 
     public Object getRequestDto() {
@@ -97,23 +90,25 @@ public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
 
     @Override
     protected Response<ParsedResponse<T>> parseNetworkResponse(NetworkResponse response) {
-        try {
-            if ((clazz == null && type == null) || clazz == NetworkResponse.class) {
-                ParsedResponse<T> parsedResponse = new ParsedResponse<>(response, null);
-                return Response.success(parsedResponse, HttpHeaderParser.parseCacheHeaders(response));
-            } else if (clazz != null) {
-                T parsed = getResponseDecoder().decodeParams(response.data, clazz, HttpHeaderParser.parseCharset(response.headers));
-                ParsedResponse<T> parsedResponse = new ParsedResponse<>(response, parsed);
-                return Response.success(parsedResponse, HttpHeaderParser.parseCacheHeaders(response));
-            } else {
-                T parsed = getResponseDecoder().decodeParams(response.data, type, HttpHeaderParser.parseCharset(response.headers));
-                ParsedResponse<T> parsedResponse = new ParsedResponse<>(response, parsed);
-                return Response.success(parsedResponse, HttpHeaderParser.parseCacheHeaders(response));
+        Boolean valid = isResponseValid(response);
+
+        if (valid == null || valid) {
+            try {
+                if (type == null) {
+                    ParsedResponse<T> parsedResponse = new ParsedResponse<>(response, null);
+                    return Response.success(parsedResponse, HttpHeaderParser.parseCacheHeaders(response));
+                } else {
+                    T parsed = getResponseDecoder().decodeParams(response.data, type, HttpHeaderParser.parseCharset(response.headers));
+                    ParsedResponse<T> parsedResponse = new ParsedResponse<>(response, parsed);
+                    return Response.success(parsedResponse, HttpHeaderParser.parseCacheHeaders(response));
+                }
+            } catch (UnsupportedEncodingException e) {
+                return Response.error(new ParseError(e));
+            } catch (Exception e) {
+                return Response.error(new ParseError(e));
             }
-        } catch (UnsupportedEncodingException e) {
-            return Response.error(new ParseError(e));
-        } catch (Exception e) {
-            return Response.error(new ParseError(e));
+        } else {
+            return Response.error(new UnexpectedStatusCodeError());
         }
     }
 }

@@ -40,7 +40,7 @@ ext {
     siteUrl = 'https://github.com/szantogab/NetworkHelper-Volley'
     gitUrl = 'https://github.com/szantogab/NetworkHelper-Volley.git'
 
-    libraryVersion = '0.9.11'
+    libraryVersion = '0.9.13'
 
     developerId = 'szantogab'
     developerName = 'Gabor Szanto'
@@ -59,7 +59,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 23
         versionCode 1
-        versionName '0.9.11'
+        versionName '0.9.13'
     }
 
     buildTypes {
@@ -75,6 +75,8 @@ dependencies {
     compile('com.google.code.gson:gson:2.5') {
         transitive = true
     }
+
+    compile group: 'com.google.guava', name: 'guava', version: '19.0'
 
     compile('com.android.volley:volley:1.0.+') {
         transitive = true

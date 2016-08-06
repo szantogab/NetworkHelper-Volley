@@ -5,17 +5,18 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
 import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.toolbox.Volley;
+import com.rainy.networkhelper.annotation.ExpectedStatusCode;
 import com.rainy.networkhelper.annotation.QueryConstantParam;
 import com.rainy.networkhelper.annotation.QueryConstantParams;
 import com.rainy.networkhelper.annotation.RequestMethod;
 import com.rainy.networkhelper.util.ReflectionUtil;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +29,7 @@ public abstract class BaseRequest<T> extends Request<T> {
     private Response.Listener<T> listener;
     private static RequestQueue queue;
     private int connectionType = -1;
+    private int[] expectedStatusCode = new int[]{0};
 
     private Integer method = null;
     private String url;
@@ -61,6 +63,16 @@ public abstract class BaseRequest<T> extends Request<T> {
         if (queryConstantParams != null) {
             for (QueryConstantParam queryConstantParam1 : queryConstantParams.value())
                 queryParams.put(queryConstantParam1.name(), queryConstantParam1.value());
+        }
+
+        ExpectedStatusCode expectedStatusCode = (ExpectedStatusCode) ReflectionUtil.getClassAnnotation(getClass(), ExpectedStatusCode.class);
+        if (expectedStatusCode != null) {
+            this.expectedStatusCode = expectedStatusCode.values();
+            for (int code : this.expectedStatusCode)
+            {
+                if (code < 200 || code > 299)
+                    throw new IllegalArgumentException("expected status codes must be in 200-299 range");
+            }
         }
     }
 
@@ -199,6 +211,26 @@ public abstract class BaseRequest<T> extends Request<T> {
         }
 
         return _url;
+    }
+
+    /**
+     * Checks whether the given response conforms to our status code requirements.
+     *
+     * @param response The response which will be validated.
+     * @return True if this is a valid response, false if not, or null if no status code requirements were set.
+     */
+    protected Boolean isResponseValid(NetworkResponse response) {
+        if (response != null && expectedStatusCode.length > 0 && expectedStatusCode[0] != 0) {
+            for (int code : expectedStatusCode) {
+                if (code == response.statusCode) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return null;
     }
 
     @Override
