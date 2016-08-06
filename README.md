@@ -3,20 +3,21 @@ A networking library for Android that builds on top of Volley from Google.
 
 This library has been developed in order to extend Volley, giving new features like:
   - Add ParserRequest class to parse JSON responses with Gson (or if you'd like to use Jackson, or any other serialization library, you can use that as well, but Gson is the default)
-  - Support for 
+  - Support for configuring requests to only work on specific network connections (i.e WiFi or LTE).
   - Use annotations to avoid writing boilerplate code
 
 
 ## Usage
 You can import this library from jCenter with Gradle:
 ```gradle
-compile 'com.appsquare:networkHelper:0.9.11'
+compile 'com.appsquare:networkhelper:0.9.13'
 ```
 
 ```java
 @RequestMethod(method = Request.Method.POST, url = "/users/{userId}")
+@ExpectedStatusCode(values = {200, 204}) // optional, here the response's status code can be set (from 200-299) that we accept
 public class ModifyUserRequest extends ParserRequest<User> {
-    @PathParam
+    @PathParam  //(this annotation can also be placed on a getter, like getUserId())
     private Long userId;
 
     @QueryParam
@@ -26,7 +27,7 @@ public class ModifyUserRequest extends ParserRequest<User> {
     private boolean token;
     
     public ModifyUserRequest(User user, boolean enabled, String token, Response.Listener<ParsedResponse<User>> listener, Response.ErrorListener errorListener) {
-        super(new TypeToken<User>(){}.getType(), listener, errorListener);
+        super(listener, errorListener);
         this.userId = user.getId();
         this.enabled = enabled;
         this.token = token;
