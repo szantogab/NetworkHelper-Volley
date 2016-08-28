@@ -10,7 +10,7 @@ This library has been developed in order to extend Volley, giving new features l
 ## Usage
 You can import this library from jCenter with Gradle:
 ```gradle
-compile 'com.appsquare:networkhelper:0.9.13'
+compile 'com.appsquare:networkhelper:1.0.1'
 ```
 
 ```java
@@ -45,6 +45,13 @@ public class ModifyUserRequest extends ParserRequest<User> {
         // optionally set that this request can only be sent via WiFi
         setConnectionType(ConnectivityManager.TYPE_WIFI);
 }
+```
+
+## Futures
+It is also possible to use a future and execute is either synchronously or asynchronously. Just create the request and call the getFuture() method on it, like below:
+
+```java
+        new ModifyUserRequest(user, true, "token", new Response.Listener<ParsedResponse<User>>()).getFuture().execute();
 ```
 
 And then use it in your code:
