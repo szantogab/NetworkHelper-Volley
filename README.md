@@ -10,7 +10,7 @@ This library has been developed in order to extend Volley, giving new features l
 ## Usage
 You can import this library from jCenter with Gradle:
 ```gradle
-compile 'com.appsquare:networkhelper:0.9.13'
+compile 'com.appsquare:networkhelper:1.0.2'
 ```
 
 ```java
@@ -61,6 +61,13 @@ And then use it in your code:
                 // Handle error here
             }
         }).send(context);
+```
+
+## Futures
+It is also possible to use futures and execute it either synchronously or asynchronously. Just create the request and call the getFuture() method on it, like below:
+
+```java
+        new ModifyUserRequest(user, true, "token", null, null).getFuture(context).execute();
 ```
 
 ## Contributions
