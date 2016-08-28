@@ -64,10 +64,10 @@ And then use it in your code:
 ```
 
 ## Futures
-It is also possible to use a future and execute is either synchronously or asynchronously. Just create the request and call the getFuture() method on it, like below:
+It is also possible to use futures and execute it either synchronously or asynchronously. Just create the request and call the getFuture() method on it, like below:
 
 ```java
-        new ModifyUserRequest(user, true, "token", new Response.Listener<ParsedResponse<User>>()).getFuture().execute();
+        new ModifyUserRequest(user, true, "token", new Response.Listener<ParsedResponse<User>>()).getFutureAndSend().execute();
 ```
 
 ## Contributions
