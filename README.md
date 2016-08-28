@@ -47,13 +47,6 @@ public class ModifyUserRequest extends ParserRequest<User> {
 }
 ```
 
-## Futures
-It is also possible to use a future and execute is either synchronously or asynchronously. Just create the request and call the getFuture() method on it, like below:
-
-```java
-        new ModifyUserRequest(user, true, "token", new Response.Listener<ParsedResponse<User>>()).getFuture().execute();
-```
-
 And then use it in your code:
 ```java
         User user = new User("First Name", "Last Name", "hello@android.com");
@@ -68,6 +61,13 @@ And then use it in your code:
                 // Handle error here
             }
         }).send(context);
+```
+
+## Futures
+It is also possible to use a future and execute is either synchronously or asynchronously. Just create the request and call the getFuture() method on it, like below:
+
+```java
+        new ModifyUserRequest(user, true, "token", new Response.Listener<ParsedResponse<User>>()).getFuture().execute();
 ```
 
 ## Contributions
