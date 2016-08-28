@@ -2,54 +2,79 @@ package com.rainy.networkhelper.future;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 
-import com.google.common.util.concurrent.AbstractFuture;
-
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
- * Abstract future implementation that offers a
- * built-in executor, and optional generic listeners
+ * Abstract future that offers a
+ * built-in executor, and generic listeners
  * for success and failure.
  * <p>
  * Created by szantogabor on 28/08/16.
  */
-public abstract class ExecutionFuture<T> {
-    private static ExecutorService executorService = Executors.newFixedThreadPool(4);
-    private OnProgressChangedListener onProgressChangedListener;
+public abstract class ExecutionFuture<T> implements Future<T> {
+    private static final ExecutorService sExecutorService = Executors.newFixedThreadPool(4);
+    private static final Handler handler = new Handler(Looper.getMainLooper());
 
-    public abstract T execute() throws DataSourceException;
+    private ExecutorService executorService;
+    private volatile OnProgressChangedListener onProgressChangedListener;
+    private volatile OnSuccessListener<T> onSuccessListener;
+    private volatile OnErrorListener onErrorListener;
+    private volatile boolean cancelled = false;
+    private volatile boolean done = false;
+    private final Object lock = new Object();
 
-    public void enqueue(final OnSuccessListener<T> onSuccessListener, final OnErrorListener onErrorListener) {
-        final Handler handler = new Handler(Looper.getMainLooper());
+    public ExecutionFuture() {
+        this.executorService = sExecutorService;
+    }
+
+    public ExecutionFuture(ExecutorService executorService) {
+        this.executorService = executorService;
+    }
+
+    protected abstract T execute(Long timeoutMs) throws Exception;
+
+    public void enqueue(OnSuccessListener<T> onSuccessListener, OnErrorListener onErrorListener) {
+        this.onSuccessListener = onSuccessListener;
+        this.onErrorListener = onErrorListener;
+        this.cancelled = false;
+
         executorService.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    final T result = execute();
+                    final T result = execute(null);
 
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            onSuccessListener.onSuccess(result);
-                        }
-                    });
-                } catch (final DataSourceException e) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Log.e(Constants.LOG_TAG, "Data source exception", e);
-                            onErrorListener.onError(e);
-                        }
-                    });
+                    synchronized (lock) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (ExecutionFuture.this.onSuccessListener != null && !cancelled)
+                                    ExecutionFuture.this.onSuccessListener.onSuccess(result);
+                            }
+                        });
+                    }
+                } catch (final Exception e) {
+                    synchronized (lock) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (ExecutionFuture.this.onErrorListener != null && !cancelled)
+                                    ExecutionFuture.this.onErrorListener.onError(e);
+                            }
+                        });
+                    }
                 }
             }
         });
     }
 
-    public DataSourceFuture<T> withProgressChangedListener(OnProgressChangedListener onProgressChangedListener) {
+    public ExecutionFuture<T> withProgressChangedListener(OnProgressChangedListener onProgressChangedListener) {
         this.onProgressChangedListener = onProgressChangedListener;
         return this;
     }
@@ -66,6 +91,48 @@ public abstract class ExecutionFuture<T> {
         }
     }
 
+    @Override
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        synchronized (lock) {
+            onSuccessListener = null;
+            onErrorListener = null;
+            onProgressChangedListener = null;
+            cancelled = true;
+
+            return !done;
+        }
+    }
+
+    @Override
+    public boolean isDone() {
+        return done;
+    }
+
+    @Override
+    public final T get() throws InterruptedException, ExecutionException {
+        try {
+            T result = execute(null);
+            done = true;
+            return result;
+        } catch (Exception e) {
+            throw new ExecutionException(e);
+        }
+    }
+
+    @Override
+    public final T get(long timeout, TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException {
+        try {
+            return execute(TimeUnit.MILLISECONDS.convert(timeout, timeUnit));
+        } catch (Exception e) {
+            throw new ExecutionException(e);
+        }
+    }
+
     public interface OnProgressChangedListener {
         void onProgressChanged(float progress, String message);
     }
@@ -75,6 +142,6 @@ public abstract class ExecutionFuture<T> {
     }
 
     public interface OnErrorListener {
-        void onError(DataSourceException e);
+        void onError(Exception e);
     }
 }

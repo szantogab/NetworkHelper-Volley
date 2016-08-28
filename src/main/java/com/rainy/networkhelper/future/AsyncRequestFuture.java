@@ -16,10 +16,15 @@ package com.rainy.networkhelper.future;
  * limitations under the License.
  */
 
+import android.content.Context;
+
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.google.common.util.concurrent.AbstractFuture;
+import com.rainy.networkhelper.request.BaseRequest;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 /**
  * A Future that represents a Volley request.
@@ -47,25 +52,52 @@ import com.google.common.util.concurrent.AbstractFuture;
  *
  * @param <T> The type of parsed response this future expects.
  */
-public class AsyncRequestFuture<T> extends AbstractFuture<T> implements Response.Listener<T>, Response.ErrorListener {
-    protected Request<T> mRequest;
+public class AsyncRequestFuture<T> extends ExecutionFuture<T> implements Response.Listener<T>, Response.ErrorListener {
+    protected BaseRequest<T> mRequest;
+    private Context context;
+    private Exception mException;
+    private T mResult;
+    private boolean mResultReceived = false;
 
-    protected AsyncRequestFuture() {
-    }
-
-    protected AsyncRequestFuture(Request<T> request) {
+    protected AsyncRequestFuture(Context context, BaseRequest<T> request) {
+        this.context = context;
         this.mRequest = request;
     }
 
-    public static <E> AsyncRequestFuture<E> newFuture() {
-        return new AsyncRequestFuture<>();
+    public static <E> AsyncRequestFuture<E> newFuture(Context context, BaseRequest<E> request) {
+        return new AsyncRequestFuture<>(context, request);
     }
 
-    public static <E> AsyncRequestFuture<E> newFuture(Request<E> request) {
-        return new AsyncRequestFuture<>(request);
+    @Override
+    protected synchronized T execute(Long timeoutMs) throws Exception {
+        if (mException != null) {
+            throw new ExecutionException(mException);
+        }
+
+        if (mResultReceived) {
+            return mResult;
+        }
+
+        mRequest.send(context);
+
+        if (timeoutMs == null) {
+            wait(0);
+        } else if (timeoutMs > 0) {
+            wait(timeoutMs);
+        }
+
+        if (mException != null) {
+            throw new ExecutionException(mException);
+        }
+
+        if (!mResultReceived) {
+            throw new TimeoutException();
+        }
+
+        return mResult;
     }
 
-    public void setRequest(Request<T> mRequest) {
+    public void setRequest(BaseRequest<T> mRequest) {
         this.mRequest = mRequest;
     }
 
@@ -74,19 +106,28 @@ public class AsyncRequestFuture<T> extends AbstractFuture<T> implements Response
     }
 
     @Override
+    public synchronized boolean cancel(boolean mayInterruptIfRunning) {
+        boolean cancel = super.cancel(mayInterruptIfRunning);
+        if (mRequest != null)
+            mRequest.cancel();
+        return cancel;
+    }
+
+    @Override
     public synchronized void onResponse(T response) {
-        set(response);
+        mResult = response;
+        mResultReceived = true;
+        notifyAll();
     }
 
     @Override
     public synchronized void onErrorResponse(VolleyError error) {
-        setException(error);
+        mException = error;
+        mResultReceived = true;
+        notifyAll();
     }
 
-    @Override
-    protected void interruptTask() {
-        super.interruptTask();
-        if (mRequest != null)
-            mRequest.cancel();
+    public Context getContext() {
+        return context;
     }
 }

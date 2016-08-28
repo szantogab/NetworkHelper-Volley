@@ -1,5 +1,7 @@
 package com.rainy.networkhelper.request;
 
+import android.content.Context;
+
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
@@ -7,13 +9,13 @@ import com.android.volley.Response;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.google.common.reflect.TypeToken;
 import com.rainy.networkhelper.exception.UnexpectedStatusCodeError;
+import com.rainy.networkhelper.future.ParsedAsyncRequestFuture;
 import com.rainy.networkhelper.mapper.BodyMapper;
 import com.rainy.networkhelper.mapper.GsonBodyMapper;
 import com.rainy.networkhelper.response.ParsedResponse;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
-import java.util.List;
 import java.util.Map;
 
 public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
@@ -21,6 +23,10 @@ public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
     private Object requestDto = null;
     private BodyMapper bodyEncoder = new GsonBodyMapper();
     private BodyMapper responseDecoder = new GsonBodyMapper();
+
+    public ParserRequest() {
+        super();
+    }
 
     public ParserRequest(Response.Listener<ParsedResponse<T>> listener, Response.ErrorListener errorListener) throws IllegalArgumentException {
         super(listener, errorListener);
@@ -37,6 +43,7 @@ public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
         super(httpMethod, url, headers, listener, errorListener);
         this.type = type;
     }
+
 
     public Object getRequestDto() {
         return requestDto;
@@ -110,5 +117,21 @@ public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
         } else {
             return Response.error(new UnexpectedStatusCodeError());
         }
+    }
+
+    /**
+     * Returns a future to the request, without sending it.
+     * This will give a possibility to either send the request
+     * synchronously or asynchronously. You can even cancel the
+     * request with the future.
+     * <p>
+     * <b>Please note that if this method is called, the previously
+     * set listeners will be forgotten.</b>
+     */
+    public ParsedAsyncRequestFuture<T> getParsedFuture(Context context) {
+        ParsedAsyncRequestFuture<T> future = ParsedAsyncRequestFuture.newFuture(context, this);
+        setListener(future);
+        setErrorListener(future);
+        return future;
     }
 }

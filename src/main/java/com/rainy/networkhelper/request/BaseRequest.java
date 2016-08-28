@@ -10,11 +10,13 @@ import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
 import com.rainy.networkhelper.annotation.ExpectedStatusCode;
 import com.rainy.networkhelper.annotation.QueryConstantParam;
 import com.rainy.networkhelper.annotation.QueryConstantParams;
 import com.rainy.networkhelper.annotation.RequestMethod;
+import com.rainy.networkhelper.future.AsyncRequestFuture;
 import com.rainy.networkhelper.util.ReflectionUtil;
 
 import java.util.HashMap;
@@ -27,6 +29,7 @@ public abstract class BaseRequest<T> extends Request<T> {
     private Map<String, String> queryParams = new HashMap<>();
     private Map<String, String> pathParams = new HashMap<>();
     private Response.Listener<T> listener;
+    private Response.ErrorListener errorListener;
     private static RequestQueue queue;
     private int connectionType = -1;
     private int[] expectedStatusCode = new int[]{0};
@@ -35,18 +38,43 @@ public abstract class BaseRequest<T> extends Request<T> {
     private String url;
 
     /**
+     * Constructor for creating a new request that is meant to
+     * be used with Futures. When using this constructor, the
+     * class must be used with the @{code RequestMethod}
+     * annotation, where the method and the URL must be specified.
+     */
+    public BaseRequest() {
+        super(Method.GET, null, null);
+        fetchAnnotations();
+    }
+
+    /**
      * Constructor for creating a new request. When using this constructor, the class must be used with the @{code RequestMethod} annotation, where the method and the URL must be specified.
      *
      * @param listener      The normal success listener
      * @param errorListener The error listener
      */
-    public BaseRequest(Response.Listener<T> listener, Response.ErrorListener errorListener) throws IllegalArgumentException {
+    public BaseRequest(Response.Listener<T> listener, Response.ErrorListener errorListener) {
         super(Method.GET, null, errorListener);
         this.listener = listener;
+        fetchAnnotations();
+    }
 
+    public BaseRequest(int httpMethod, String url, Response.Listener<T> listener, Response.ErrorListener errorListener) {
+        super(httpMethod, url, errorListener);
+        this.listener = listener;
+    }
+
+    public BaseRequest(int httpMethod, String url, Map<String, String> headers, Response.Listener<T> listener, Response.ErrorListener errorListener) {
+        super(httpMethod, url, errorListener);
+        this.listener = listener;
+        this.headers = headers;
+    }
+
+    private void fetchAnnotations() {
         RequestMethod requestMethod = (RequestMethod) ReflectionUtil.getClassAnnotation(getClass(), RequestMethod.class);
         if (requestMethod == null)
-            throw new IllegalArgumentException("This class must be annotated with RequestMethod annotation.");
+            throw new IllegalArgumentException("This class must be annotated with RequestMethod annotation when using this constructor.");
 
         if (requestMethod.url() == null || requestMethod.url().length() == 0)
             throw new IllegalArgumentException("The RequestMethod annotation's url must be specified.");
@@ -68,24 +96,11 @@ public abstract class BaseRequest<T> extends Request<T> {
         ExpectedStatusCode expectedStatusCode = (ExpectedStatusCode) ReflectionUtil.getClassAnnotation(getClass(), ExpectedStatusCode.class);
         if (expectedStatusCode != null) {
             this.expectedStatusCode = expectedStatusCode.values();
-            for (int code : this.expectedStatusCode)
-            {
+            for (int code : this.expectedStatusCode) {
                 if (code < 200 || code > 299)
                     throw new IllegalArgumentException("expected status codes must be in 200-299 range");
             }
         }
-    }
-
-    public BaseRequest(int httpMethod, String url, Response.Listener<T> listener, Response.ErrorListener errorListener) {
-        super(httpMethod, url, errorListener);
-        this.listener = listener;
-    }
-
-    public BaseRequest(int httpMethod, String url, Map<String, String> headers, Response.Listener<T> listener, Response.ErrorListener errorListener) {
-        super(httpMethod, url, errorListener);
-
-        this.listener = listener;
-        this.headers = headers;
     }
 
     @Override
@@ -240,7 +255,45 @@ public abstract class BaseRequest<T> extends Request<T> {
         }
     }
 
+    public BaseRequest<T> setListener(Response.Listener<T> listener) {
+        this.listener = listener;
+        return this;
+    }
+
+    @Override
+    public Response.ErrorListener getErrorListener() {
+        return errorListener != null ? errorListener : super.getErrorListener();
+    }
+
+    public BaseRequest<T> setErrorListener(Response.ErrorListener errorListener) {
+        this.errorListener = errorListener;
+        return this;
+    }
+
     public static RequestQueue getQueue() {
         return queue;
+    }
+
+    @Override
+    public void deliverError(VolleyError error) {
+        if (getErrorListener() != null) {
+            getErrorListener().onErrorResponse(error);
+        }
+    }
+
+    /**
+     * Returns a future to the request.
+     * This will give a possibility to either send the request
+     * synchronously or asynchronously. You can even cancel the
+     * request with the future.
+     * <p>
+     * <b>Please note that if this method is called, the previously
+     * set listeners will be forgotten.</b>
+     */
+    public AsyncRequestFuture<T> getFuture(Context context) {
+        AsyncRequestFuture<T> future = AsyncRequestFuture.newFuture(context, this);
+        setListener(future);
+        setErrorListener(future);
+        return future;
     }
 }
