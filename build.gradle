@@ -22,9 +22,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.1.2'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.4.1'
     }
 }
 
@@ -40,7 +39,7 @@ ext {
     siteUrl = 'https://github.com/szantogab/NetworkHelper-Volley'
     gitUrl = 'https://github.com/szantogab/NetworkHelper-Volley.git'
 
-    libraryVersion = '1.0.2'
+    libraryVersion = '1.0.3'
 
     developerId = 'szantogab'
     developerName = 'Gabor Szanto'
@@ -53,13 +52,13 @@ ext {
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.2"
+    buildToolsVersion "24.0.3"
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 23
-        versionCode 2
-        versionName '1.0.2'
+        targetSdkVersion 24
+        versionCode 3
+        versionName '1.0.3'
     }
 
     buildTypes {

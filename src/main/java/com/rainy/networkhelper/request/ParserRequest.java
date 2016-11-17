@@ -26,9 +26,36 @@ public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
 
     public ParserRequest() {
         super();
+        this.type = new TypeToken<T>(getClass()) {
+        }.getType();
     }
 
+    /**
+     * Constructor that will fetch and use the response type from the
+     * generic type of this class. If no response parsing is needed,
+     * pass {@link Void} in the response type.
+     *
+     * @param listener      The success listener.
+     * @param errorListener The error listener.
+     * @throws IllegalArgumentException
+     */
     public ParserRequest(Response.Listener<ParsedResponse<T>> listener, Response.ErrorListener errorListener) throws IllegalArgumentException {
+        super(listener, errorListener);
+        this.type = new TypeToken<T>(getClass()) {
+        }.getType();
+    }
+
+    /**
+     * Constructor used to dynamically set the response type. If no
+     * response parsing is needed, pass {@code null} or {@link Void}
+     * in the response type.
+     *
+     * @param responseType  The type of the response object.
+     * @param listener      The success listener.
+     * @param errorListener The error listener.
+     * @throws IllegalArgumentException
+     */
+    public ParserRequest(Type responseType, Response.Listener<ParsedResponse<T>> listener, Response.ErrorListener errorListener) throws IllegalArgumentException {
         super(listener, errorListener);
         this.type = new TypeToken<T>(getClass()) {
         }.getType();
@@ -44,13 +71,13 @@ public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
         this.type = type;
     }
 
-
     public Object getRequestDto() {
         return requestDto;
     }
 
-    public void setRequestDto(Object requestDto) {
+    public ParserRequest<T> setRequestDto(Object requestDto) {
         this.requestDto = requestDto;
+        return this;
     }
 
     @Override
@@ -88,7 +115,7 @@ public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
             try {
                 return bodyEncoder.encodeParams(requestDto, getParamsEncoding());
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException("failed to serialize body", e);
             }
         }
 
@@ -101,7 +128,7 @@ public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
 
         if (valid == null || valid) {
             try {
-                if (type == null) {
+                if (type == null || type == Void.class) {
                     ParsedResponse<T> parsedResponse = new ParsedResponse<>(response, null);
                     return Response.success(parsedResponse, HttpHeaderParser.parseCacheHeaders(response));
                 } else {

@@ -126,7 +126,8 @@ public abstract class BaseRequest<T> extends Request<T> {
     }
 
     /**
-     * @return Returns the query parameters that have been added either with the addQueryParam method, or with the QueryConstantParam annotation.
+     * @return Returns the query parameters that have been added either with
+     * the addQueryParam method, or with the QueryConstantParam annotation.
      */
     public Map<String, String> getQueryParams() {
         return queryParams;
@@ -140,7 +141,8 @@ public abstract class BaseRequest<T> extends Request<T> {
     }
 
     /**
-     * Sets a path parameter to the given value. Note: this will only work if the URL contains placeholder for the parameter, like this: http://somedomain.com/users/{user}.
+     * Sets a path parameter to the given value. Note: this will only work
+     * if the URL contains placeholder for the parameter, like this: http://somedomain.com/users/{user}.
      *
      * @param pathParamName The name of the URL path parameter
      * @param value         The value of the path parameter.
@@ -149,6 +151,12 @@ public abstract class BaseRequest<T> extends Request<T> {
         pathParams.put(pathParamName, value);
     }
 
+    /**
+     * Adds a query param with the given name and value.
+     *
+     * @param name  The name of the query param.
+     * @param value The value of the query param.
+     */
     public void addQueryParam(String name, String value) {
         queryParams.put(name, value);
     }
@@ -163,6 +171,12 @@ public abstract class BaseRequest<T> extends Request<T> {
         this.headers = headers;
     }
 
+    /**
+     * Adds a header param with the given name and value.
+     *
+     * @param name  The name of the header param.
+     * @param value The value of the header param.
+     */
     public void addHeaderParam(String name, String value) {
         if (this.headers == null)
             this.headers = new HashMap<>();
@@ -171,7 +185,10 @@ public abstract class BaseRequest<T> extends Request<T> {
     }
 
     /**
-     * @param context context
+     * Helper method that can be used to determine if a network
+     * connection is available.
+     *
+     * @param context Application or activity context.
      * @param type    One of ConnectivityManager.TYPE_ constants.
      * @return Returns whether the specified connection is active.
      */
