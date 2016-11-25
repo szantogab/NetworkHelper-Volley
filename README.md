@@ -10,7 +10,7 @@ This library has been developed in order to extend Volley, giving new features l
 ## Usage
 You can import this library from jCenter with Gradle:
 ```gradle
-compile 'com.appsquare:networkhelper:1.0.3'
+compile 'com.appsquare:networkhelper:1.0.4'
 ```
 
 ```java
