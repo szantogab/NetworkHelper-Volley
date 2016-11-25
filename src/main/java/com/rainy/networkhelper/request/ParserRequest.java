@@ -19,21 +19,21 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
-    private Type type = null;
+    private Type responseType = null;
     private Object requestDto = null;
     private BodyMapper bodyEncoder = new GsonBodyMapper();
     private BodyMapper responseDecoder = new GsonBodyMapper();
 
     public ParserRequest() {
         super();
-        this.type = new TypeToken<T>(getClass()) {
+        this.responseType = new TypeToken<T>(getClass()) {
         }.getType();
     }
 
     /**
-     * Constructor that will fetch and use the response type from the
-     * generic type of this class. If no response parsing is needed,
-     * pass {@link Void} in the response type.
+     * Constructor that will fetch and use the response responseType from the
+     * generic responseType of this class. If no response parsing is needed,
+     * pass {@link Void} in the response responseType.
      *
      * @param listener      The success listener.
      * @param errorListener The error listener.
@@ -41,7 +41,7 @@ public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
      */
     public ParserRequest(Response.Listener<ParsedResponse<T>> listener, Response.ErrorListener errorListener) throws IllegalArgumentException {
         super(listener, errorListener);
-        this.type = new TypeToken<T>(getClass()) {
+        this.responseType = new TypeToken<T>(getClass()) {
         }.getType();
     }
 
@@ -50,25 +50,24 @@ public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
      * response parsing is needed, pass {@code null} or {@link Void}
      * in the response type.
      *
-     * @param responseType  The type of the response object.
+     * @param responseType  The responseType of the response object.
      * @param listener      The success listener.
      * @param errorListener The error listener.
      * @throws IllegalArgumentException
      */
     public ParserRequest(Type responseType, Response.Listener<ParsedResponse<T>> listener, Response.ErrorListener errorListener) throws IllegalArgumentException {
         super(listener, errorListener);
-        this.type = new TypeToken<T>(getClass()) {
-        }.getType();
+        this.responseType = responseType;
     }
 
-    public ParserRequest(int httpMethod, String url, Type type, Response.Listener<ParsedResponse<T>> listener, Response.ErrorListener errorListener) {
+    public ParserRequest(int httpMethod, String url, Type responseType, Response.Listener<ParsedResponse<T>> listener, Response.ErrorListener errorListener) {
         super(httpMethod, url, listener, errorListener);
-        this.type = type;
+        this.responseType = responseType;
     }
 
-    public ParserRequest(int httpMethod, String url, Map<String, String> headers, Type type, Response.Listener<ParsedResponse<T>> listener, Response.ErrorListener errorListener) {
+    public ParserRequest(int httpMethod, String url, Map<String, String> headers, Type responseType, Response.Listener<ParsedResponse<T>> listener, Response.ErrorListener errorListener) {
         super(httpMethod, url, headers, listener, errorListener);
-        this.type = type;
+        this.responseType = responseType;
     }
 
     public Object getRequestDto() {
@@ -128,11 +127,11 @@ public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
 
         if (valid == null || valid) {
             try {
-                if (type == null || type == Void.class) {
+                if (responseType == null || responseType == Void.class) {
                     ParsedResponse<T> parsedResponse = new ParsedResponse<>(response, null);
                     return Response.success(parsedResponse, HttpHeaderParser.parseCacheHeaders(response));
                 } else {
-                    T parsed = getResponseDecoder().decodeParams(response.data, type, HttpHeaderParser.parseCharset(response.headers));
+                    T parsed = getResponseDecoder().decodeParams(response.data, responseType, HttpHeaderParser.parseCharset(response.headers));
                     ParsedResponse<T> parsedResponse = new ParsedResponse<>(response, parsed);
                     return Response.success(parsedResponse, HttpHeaderParser.parseCacheHeaders(response));
                 }
@@ -144,6 +143,15 @@ public class ParserRequest<T> extends BaseRequest<ParsedResponse<T>> {
         } else {
             return Response.error(new UnexpectedStatusCodeError());
         }
+    }
+
+    /**
+     * @return The responseType of the response object that was obtained from
+     * either the subclass' generic responseType or from calling one of the responseType
+     * constructors.
+     */
+    public Type getResponseType() {
+        return responseType;
     }
 
     /**

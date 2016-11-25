@@ -39,7 +39,7 @@ ext {
     siteUrl = 'https://github.com/szantogab/NetworkHelper-Volley'
     gitUrl = 'https://github.com/szantogab/NetworkHelper-Volley.git'
 
-    libraryVersion = '1.0.3'
+    libraryVersion = '1.0.4'
 
     developerId = 'szantogab'
     developerName = 'Gabor Szanto'
@@ -57,8 +57,8 @@ android {
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 24
-        versionCode 3
-        versionName '1.0.3'
+        versionCode 4
+        versionName libraryVersion
     }
 
     buildTypes {
